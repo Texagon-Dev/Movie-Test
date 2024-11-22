@@ -49,7 +49,7 @@ export default function PageLayout({
         </div>
         <div className="pb-20">{children}</div>
       </div>
-      <div className="absolute bottom-0  w-full">
+      <div className="absolute bottom-0  w-full ">
         <Image
           src={bottom}
           alt="bottom decoration"

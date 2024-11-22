@@ -2,7 +2,18 @@ import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
 
-// GET /api/movies
+export async function getSignedUrl(supabase, fileName) {
+  try {
+    const { data } = await supabase.storage
+      .from("movie_posters")
+      .createSignedUrl(fileName, 604800);
+    return data?.signedUrl;
+  } catch (error) {
+    console.error(`Error getting signed URL for ${fileName}:`, error);
+    return null;
+  }
+}
+
 export async function GET(request) {
   const supabase = createRouteHandlerClient({ cookies });
   const { searchParams } = new URL(request.url);
@@ -11,31 +22,38 @@ export async function GET(request) {
   const offset = (page - 1) * limit;
 
   try {
-    // Get total count
-    const { count } = await supabase
-      .from("movies")
-      .select("*", { count: "exact", head: true });
+    const [countResult, moviesResult] = await Promise.all([
+      supabase.from("movies").select("*", { count: "exact", head: true }),
+      supabase
+        .from("movies")
+        .select("*")
+        .order("created_at", { ascending: false })
+        .range(offset, offset + limit - 1),
+    ]);
 
-    // Get paginated movies
-    const { data: movies, error } = await supabase
-      .from("movies")
-      .select("*")
-      .order("created_at", { ascending: false })
-      .range(offset, offset + limit - 1);
-
+    const { count } = countResult;
+    const { data: movies, error } = moviesResult;
     if (error) throw error;
 
-    // Get signed URLs for posters
     if (movies) {
-      for (let movie of movies) {
-        if (movie.poster_url) {
+      const signedUrlPromises = movies
+        .filter((movie) => movie.poster_url)
+        .map((movie) => {
           const fileName = movie.poster_url.split("/").pop();
-          const { data } = await supabase.storage
-            .from("movie_posters")
-            .createSignedUrl(fileName, 604800);
-          movie.poster_url = data?.signedUrl || movie.poster_url;
+          return getSignedUrl(supabase, fileName).then((signedUrl) => ({
+            movieId: movie.id,
+            signedUrl,
+          }));
+        });
+
+      const signedUrls = await Promise.all(signedUrlPromises);
+
+      signedUrls.forEach(({ movieId, signedUrl }) => {
+        const movie = movies.find((m) => m.id === movieId);
+        if (movie && signedUrl) {
+          movie.poster_url = signedUrl;
         }
-      }
+      });
     }
 
     return NextResponse.json({
@@ -49,7 +67,6 @@ export async function GET(request) {
   }
 }
 
-// POST /api/movies
 export async function POST(request) {
   const supabase = createRouteHandlerClient({ cookies });
 
