@@ -44,7 +44,6 @@ export function MovieForm({
       onSubmit={handleSubmit}
       className="grid grid-cols-1 md:grid-cols-2 gap-8 pt-20"
     >
-      {/* Image Upload Section */}
       <div className="md:order-1">
         <div className="w-[473px] h-[504px]">
           <div
@@ -91,7 +90,6 @@ export function MovieForm({
         </div>
       </div>
 
-      {/* Form Fields Section */}
       <div className="md:order-1 flex flex-col space-y-6">
         <div className="space-y-4">
           <label className="block text-sm font-medium text-gray-300">

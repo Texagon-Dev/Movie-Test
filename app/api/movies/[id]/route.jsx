@@ -1,8 +1,8 @@
 import { createRouteHandlerClient } from "@supabase/auth-helpers-nextjs";
 import { cookies } from "next/headers";
 import { NextResponse } from "next/server";
+import { getSignedUrl } from "../route";
 
-// GET /api/movies/[id]
 export async function GET(request, { params }) {
   const supabase = createRouteHandlerClient({ cookies });
   const { id } = params;
@@ -18,10 +18,10 @@ export async function GET(request, { params }) {
 
     if (movie?.poster_url) {
       const fileName = movie.poster_url.split("/").pop();
-      const { data } = await supabase.storage
-        .from("movie_posters")
-        .createSignedUrl(fileName, 604800);
-      movie.poster_url = data?.signedUrl || movie.poster_url;
+      const signedUrl = await getSignedUrl(supabase, fileName);
+      if (signedUrl) {
+        movie.poster_url = signedUrl;
+      }
     }
 
     return NextResponse.json(movie);
@@ -30,7 +30,6 @@ export async function GET(request, { params }) {
   }
 }
 
-// PATCH /api/movies/[id]
 export async function PATCH(request, { params }) {
   const supabase = createRouteHandlerClient({ cookies });
   const { id } = params;
@@ -50,15 +49,14 @@ export async function PATCH(request, { params }) {
       const fileExt = poster.name.split(".").pop();
       const fileName = `${Date.now()}.${fileExt}`;
 
-      const { error: uploadError } = await supabase.storage
-        .from("movie_posters")
-        .upload(fileName, poster, {
+      const [uploadResult] = await Promise.all([
+        supabase.storage.from("movie_posters").upload(fileName, poster, {
           cacheControl: "3600",
           upsert: false,
-        });
+        }),
+      ]);
 
-      if (uploadError) throw uploadError;
-
+      if (uploadResult.error) throw uploadResult.error;
       updateData.poster_url = fileName;
     }
 
@@ -72,10 +70,10 @@ export async function PATCH(request, { params }) {
     if (error) throw error;
 
     if (movie?.poster_url) {
-      const { data } = await supabase.storage
-        .from("movie_posters")
-        .createSignedUrl(movie.poster_url, 604800);
-      movie.poster_url = data?.signedUrl || movie.poster_url;
+      const signedUrl = await getSignedUrl(supabase, movie.poster_url);
+      if (signedUrl) {
+        movie.poster_url = signedUrl;
+      }
     }
 
     return NextResponse.json(movie);
@@ -84,7 +82,6 @@ export async function PATCH(request, { params }) {
   }
 }
 
-// DELETE /api/movies/[id]
 export async function DELETE(request, { params }) {
   const supabase = createRouteHandlerClient({ cookies });
   const { id } = params;

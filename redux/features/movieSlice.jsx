@@ -129,7 +129,7 @@ const movieSlice = createSlice({
   },
   extraReducers: (builder) => {
     builder
-      // Fetch Movies
+
       .addCase(fetchMovies.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -147,7 +147,6 @@ const movieSlice = createSlice({
         state.error = action.error.message;
       })
 
-      // Fetch Single Movie
       .addCase(fetchMovie.pending, (state) => {
         state.status = "loading";
         state.currentMovie = null;
@@ -164,7 +163,6 @@ const movieSlice = createSlice({
         state.error = action.error.message;
       })
 
-      // Add Movie
       .addCase(addMovie.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -180,7 +178,6 @@ const movieSlice = createSlice({
         state.error = action.error.message;
       })
 
-      // Update Movie
       .addCase(updateMovie.pending, (state) => {
         state.status = "loading";
         state.error = null;
@@ -201,7 +198,6 @@ const movieSlice = createSlice({
         state.error = action.payload;
       })
 
-      // Delete Movie
       .addCase(deleteMovie.pending, (state) => {
         state.status = "loading";
         state.error = null;

@@ -13,7 +13,6 @@ import { Trash2 } from "lucide-react";
 import { ConfirmDialog } from "./ConfirmDialog";
 
 export default function MovieList() {
-
   const [movieToDelete, setMovieToDelete] = useState(null);
   const dispatch = useDispatch();
   const router = useRouter();
@@ -72,7 +71,6 @@ export default function MovieList() {
       start = Math.max(1, totalPages - maxButtons + 1);
     }
 
-    // Previous button
     if (currentPage > 1) {
       buttons.push(
         <button
@@ -86,7 +84,6 @@ export default function MovieList() {
       );
     }
 
-    // First page and ellipsis
     if (start > 1) {
       buttons.push(
         <button
@@ -107,7 +104,6 @@ export default function MovieList() {
       }
     }
 
-    // Page numbers
     for (let i = start; i <= end; i++) {
       buttons.push(
         <button
@@ -126,7 +122,6 @@ export default function MovieList() {
       );
     }
 
-    // Last page and ellipsis
     if (end < totalPages) {
       if (end < totalPages - 1) {
         buttons.push(
@@ -147,7 +142,6 @@ export default function MovieList() {
       );
     }
 
-    // Next button
     if (currentPage < totalPages) {
       buttons.push(
         <button
@@ -197,7 +191,7 @@ export default function MovieList() {
     }
   };
 
-	return (
+  return (
     <>
       <PageLayout
         title="My movies"
@@ -205,7 +199,7 @@ export default function MovieList() {
         showLogout={true}
         onLogout={handleLogout}
       >
-        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-20">
+        <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-4 gap-6 pt-20 pb-40 ">
           {movies.map((movie) => (
             <Link
               key={movie.id}
@@ -242,7 +236,7 @@ export default function MovieList() {
 
         {totalPages > 1 && (
           <nav
-            className="flex justify-center space-x-4 py-40"
+            className="flex justify-center space-x-4 pb-40"
             aria-label="Pagination"
           >
             {renderPaginationButtons()}
